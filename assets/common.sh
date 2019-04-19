@@ -61,11 +61,11 @@ setup_kubectl() {
     if [[ "$insecure_skip_tls_verify" == "true" ]]; then
       set_cluster_opts+=("--insecure-skip-tls-verify")
     fi
-    exe kubectl config set-cluster "$CLUSTER_NAME" "${set_cluster_opts[@]}"
+    kubectl config set-cluster "$CLUSTER_NAME" "${set_cluster_opts[@]}"
 
-    exe kubectl config set-context "$CONTEXT_NAME" --cluster="$CLUSTER_NAME" --user "$AUTH_NAME"
+    kubectl config set-context "$CONTEXT_NAME" --cluster="$CLUSTER_NAME" --user "$AUTH_NAME"
 
-    exe kubectl config use-context "$CONTEXT_NAME"
+    kubectl config use-context "$CONTEXT_NAME"
 
     # Optional. Use the AWS EKS authenticator
     local use_aws_iam_authenticator
@@ -115,7 +115,7 @@ EOF
     namespace="$(jq -r '.source.namespace // ""' < "$payload")"
   fi
   if [[ -n "$namespace" ]]; then
-    exe kubectl config set-context "$(kubectl config current-context)" --namespace="$namespace"
+    kubectl config set-context "$(kubectl config current-context)" --namespace="$namespace"
   fi
 
   # if providing a token we set a user and override context to support both kubeconfig and generated config
@@ -126,28 +126,28 @@ EOF
     # Avoid to expose the token string by using placeholder
     local set_credentials_opts
     set_credentials_opts=("--token=**********")
-    exe kubectl config set-credentials "$AUTH_NAME" "${set_credentials_opts[@]}"
+    kubectl config set-credentials "$AUTH_NAME" "${set_credentials_opts[@]}"
     # placeholder is replaced with actual token string
     sed -i -e "s/[*]\\{10\\}/$token/" "$KUBECONFIG"
 
     # override user of context to one with token
-    exe kubectl config set-context "$(kubectl config current-context)" --user="$AUTH_NAME"
+    kubectl config set-context "$(kubectl config current-context)" --user="$AUTH_NAME"
   fi
 
   # Optional. The name of the kubeconfig context to use.
   local context
   context="$(jq -r '.source.context // ""' < "$payload")"
   if [[ -n "$context" ]]; then
-    exe kubectl config use-context "$context"
+    kubectl config use-context "$context"
   fi
 
   # Display the client and server version information
-  exe kubectl version
+  kubectl version
 
   # Ignore the error from `kubectl cluster-info`. From v1.9.0, this command
   # fails if it cannot find the cluster services.
   # See https://github.com/kubernetes/kubernetes/commit/998f33272d90e4360053d64066b9722288a25aae
-  exe kubectl cluster-info 2>/dev/null ||:
+  kubectl cluster-info 2>/dev/null ||:
 }
 
 # current_namespace outputs the current namespace.
@@ -217,7 +217,7 @@ echoerr() {
   echo -e "\\e[01;31mERROR: $*\\e[0m"
 }
 
-# exe executes the command after printing the command trace to stdout
+# executes the command after printing the command trace to stdout
 exe() {
   echo "+ $*"; "$@"
 }
